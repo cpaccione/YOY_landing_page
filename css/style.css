@@ -72,6 +72,13 @@ body {
 
 .back {
 	background-color: #6cd7c8;
+	text-align: center;
+	color: #ffffff;
+}
+
+.back p {
+	font-size: 31px;
+	font-weight: bold;
 }
 
 .front h3 {
