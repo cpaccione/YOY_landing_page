@@ -14,6 +14,16 @@ body {
 
 }
 
+/* Button Styles */
+
+.btn-lg {
+	background-color: transparent;
+	border-radius: 0;
+	border-color: #ffffff;
+	text-transform: uppercase;
+	width: 200px;
+}
+
 /* Header */
 
 .landing-page-logo {
