@@ -28,7 +28,8 @@ body {
   	transition: box-shadow 300ms ease-in-out;
 }
 
-.slideRight:hover{
+.slideRight:hover,
+.slideRight-canvasHover{
   box-shadow:inset 300px 0 0 0 #ffffff;
   background-color: transparent;
   color: #6cd7c8;

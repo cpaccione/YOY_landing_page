@@ -5,49 +5,76 @@ $(document).ready(function($) {
 	////////////////////////////////////////////////////////
 
 	var canvas = {
-		canvas: document.getElementById("confettiCanvas"),
-		cardElems: document.querySelectorAll(".card"),
-		cardHeight: document.querySelectorAll(".card")[0].style.offsetHeight,
-		cardCoords: [],
-		setSize: function(){
-			console.log()
-			canvas.canvas.style.height = canvas.canvas.parentElement.style.clientHeight;
-			canvas.canvas.style.width = canvas.canvas.parentElement.style.clientWidth;
-		},
-		insert: function(){ $("section").find(".profile-photos").append('<canvas id="confettiCanvas"></canvas>') },
-		flipCoords: function (){
-			// Get Flip Card Coords
-			for (var len = canvas.cardElems.length - 1, i = 0; i < len; i++) {
+			canvas: document.getElementById("confettiCanvas"),
+			cardElems: document.querySelectorAll(".card"),
+			cardHeight: $(".card").height(),
+			cardHover: false,
+			cardUrl: undefined,
+			cardCoords: [],
+			setSize: function(){
+				console.log("setSize");
+				canvas.canvas.style.height = canvas.canvas.parentElement.style.clientHeight;
+				canvas.canvas.style.width = canvas.canvas.parentElement.style.clientWidth;
+			},
+			insert: function(){ 
+				console.log("insert");
+				$("section").find(".profile-photos").append('<canvas id="confettiCanvas"></canvas>') 
+			},
+			flipCoords: function (){
+				// Get Flip Card Coords
+				console.log("flipCoords");
+				for (var len = canvas.cardElems.length - 1, i = 0; i < len; i++) {
 
-				var thisCard = canvas.cardElems[i],
-					rect = thisCard.getBoundingClientRect(),
-					x = rect.left,
-					y = rect.top;
+					var thisCard = canvas.cardElems[i],
+						rect = thisCard.getBoundingClientRect(),
+						x = rect.left,
+						y = rect.top;
 
-				canvas.cardCoords.push([x,y]);
+					canvas.cardCoords.push([x,y]);
+				}
+
+				return canvas.cardCoords;
+			},
+			flipListeners: function(array){
+				console.log("flipListeners");
+				for (var i = array.length - 1; i > 0; i--) {
+					document.addEventListener("mousemove", function(e){
+						console.log(e.clientX, e.clientY);
+						console.log(e.clientX >= array[i][0], e.clientX <= array[i][0] + canvas.cardHeight, e.clientY >= array[i][1], e.clientY <= array[i][1] + canvas.cardHeight);
+						if (e.clientX >= array[i][0] &&
+							e.clientX <= (array[i][0] + canvas.cardHeight) &&
+							e.clientY >= array[i][1] &&
+							e.clientY <= (array[i][1] + canvas.cardHeight)){
+							canvas.flipCard(i);
+							canvas.cardHover = true;
+							document.body.style.cursor = "pointer";
+						} else {
+							var thisCard = $(".card").eq(i); 
+							if (thisCard.hasClass("m-flipped")) {
+								canvas.cardHover = false;
+								document.body.style.cursor = "default";
+								thisCard.removeClass("m-flipped").addClass("m-not-flipped");
+								TweenLite.to(thisCard, 0.5, {rotationY: 0});
+								thisCard.find("button").removeClass("slideRight-canvasHover");
+							}
+						}
+					});
+				}
+				
+			},
+			buttonListeners: function(){
+				console.log("buttonListeners");
+
+			},
+			flipCard: function(i){
+				console.log("flipCard");
+				var thisCard = $(".card").eq(i); 
+				thisCard.removeClass("m-not-flipped").addClass("m-flipped");
+				TweenLite.to(thisCard, 0.5, {rotationY: -180});
+				setTimeout(function(){
+					thisCard.find("button").addClass("slideRight-canvasHover");
+				}, 500);
 			}
-
-			return canvas.cardCoords;
-		},
-		flipListeners: function(){
-			for (var i = canvas.cardCoords.length - 1; i >= 0; i--) {
-				document.addEventListener("mousemove", function(e){
-					if (e.clientX >= canvas.cardCoords[i][0] &&
-						e.clientX <= canvas.cardCoords[i][0] + canvas.cardHeight &&
-						e.clientY >= canvas.cardCoords[i][1] &&
-						e.clientY <= canvas.cardCoords[i][1] + canvas.cardHeight){
-						// canvas.flipCards();
-					}
-				});
-			}
-			
-		},
-		buttonListeners: function(){
-
-		},
-		flipCards: function(){
-			
-		}
 	}
 
 	////////////////////////////////////////////////////////
@@ -58,6 +85,8 @@ $(document).ready(function($) {
 	});
 	// canvas.insert();
 	canvas.setSize();
+	console.log(canvas.flipCoords());
+	canvas.flipListeners(canvas.flipCoords());
 	// console.log(canvas.flipCoords());
 
 	////////////////////////////////////////////////////////
