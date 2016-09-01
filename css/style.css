@@ -194,6 +194,23 @@ ul.social-media li {
 	color: #b3b3b3;
 }
 
+/* Confetti */
+
+canvas {
+	position: relative;
+	float: left;
+	z-index: 1;
+	height: 100%;
+	width: 100%;
+	/*margin-top: -100%;*/
+}
+
+section {
+	overflow-x: hidden;
+}
+
+/* Media Queries */
+
 @media (max-width: 1200px) {
 
 	.modal-lg {
