@@ -5,10 +5,15 @@ $(document).ready(function($) {
 	////////////////////////////////////////////////////////
 
 	var canvas = {
-		ctx: document.getElementById("confettiCanvas"),
+		canvas: document.getElementById("confettiCanvas"),
 		cardElems: document.querySelectorAll(".card"),
 		cardHeight: document.querySelectorAll(".card")[0].style.offsetHeight,
 		cardCoords: [],
+		setSize: function(){
+			console.log()
+			canvas.canvas.style.height = canvas.canvas.parentElement.style.clientHeight;
+			canvas.canvas.style.width = canvas.canvas.parentElement.style.clientWidth;
+		},
 		insert: function(){ $("section").find(".profile-photos").append('<canvas id="confettiCanvas"></canvas>') },
 		flipCoords: function (){
 			// Get Flip Card Coords
@@ -51,7 +56,8 @@ $(document).ready(function($) {
 	$(".card").flip({
 		trigger: "hover"
 	});
-	canvas.insert();
+	// canvas.insert();
+	canvas.setSize();
 	// console.log(canvas.flipCoords());
 
 	////////////////////////////////////////////////////////

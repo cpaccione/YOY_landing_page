@@ -197,7 +197,7 @@ ul.social-media li {
 /* Confetti */
 
 canvas {
-	position: relative;
+	position: absolute;
 	float: left;
 	z-index: 1;
 	height: 100%;
