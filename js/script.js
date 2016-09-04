@@ -213,9 +213,9 @@ $(document).ready(function($) {
 	        // const y1 = confettiCannon.vector[1].y;
 	        
 	        const length = 120;
-	        const angle = 180;
+	        const angle = -90;
 
-	        const particles = 200;
+	        const particles = 100;
 	        const velocity = length * 10;
 	        confettiCannon.addConfettiParticles(particles, angle, velocity, event.clientX-(canvas.cardHeight*0.5), event.clientY-(canvas.cardHeight));
 	    },
