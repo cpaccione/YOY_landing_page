@@ -217,7 +217,7 @@ $(document).ready(function($) {
 
 	        const particles = 200;
 	        const velocity = length * 10;
-	        confettiCannon.addConfettiParticles(particles, angle, velocity, event.clientX, event.clientY);
+	        confettiCannon.addConfettiParticles(particles, angle, velocity, event.clientX-(canvas.cardHeight*0.5), event.clientY-(canvas.cardHeight));
 	    },
 	    
 	    // handleMousemove: function(event) {
