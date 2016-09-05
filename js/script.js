@@ -15,6 +15,8 @@ $(document).ready(function($) {
 			cardCoords: [],
 			cardIndex: undefined,
 			confetti: true,
+			confettiX: undefined,
+			confettiY: undefined,
 			setSize: function(){
 				console.log("setSize");
 				canvas.canvas.style.height = canvas.canvas.parentElement.style.clientHeight;
@@ -34,7 +36,7 @@ $(document).ready(function($) {
 						x = rect.left,
 						y = rect.top;
 
-					canvas.cardCoords.push([x,y]);
+					canvas.cardCoords.push([x,y-(canvas.cardHeight*0.2)]);
 				}
 
 				return canvas.cardCoords;
@@ -43,7 +45,9 @@ $(document).ready(function($) {
 				console.log("flipListeners");
 
 				document.addEventListener("mousemove", function(e){
+					
 					for (var i = array.length - 1; i > 0; i--) {
+						console.log(i);
 						console.log(e.clientX, e.clientY);
 						console.log(array[i][0], array[i][0] + canvas.cardHeight, array[i][1], array[i][1] + canvas.cardHeight);
 						console.log(e.clientX >= array[i][0], e.clientX <= array[i][0] + canvas.cardHeight, e.clientY >= array[i][1], e.clientY <= array[i][1] + canvas.cardHeight);
@@ -53,9 +57,11 @@ $(document).ready(function($) {
 							document.body.style.cursor = "pointer";
 							canvas.cardIndex = i;
 							// console.log(canvas.cardCoords[i][0],canvas.cardCoords[i][1]);
+							canvas.confettiX =  canvas.cardCoords[i][0]-(canvas.cardHeight*0.5),
+							canvas.confettiY =  canvas.cardCoords[i][1];
 							window.dispatchEvent(onFlip);
 							if (canvas.confetti) {
-								confettiCannon.handleMouseup(e);
+								confettiCannon.handleMouseup(e, canvas.confettiX, canvas.confettiY);
 								canvas.confetti = false;
 							}
 						} 
@@ -109,8 +115,8 @@ $(document).ready(function($) {
 	}
 
 	// some constants
-	const DECAY = 3.5;        // confetti decay in seconds
-	const SPREAD = 60;      // degrees to spread from the angle of the cannon
+	const DECAY = 3;        // confetti decay in seconds
+	const SPREAD = 100;      // degrees to spread from the angle of the cannon
 	const GRAVITY = 1200;
 
 	var confettiCannon = {
@@ -145,7 +151,7 @@ $(document).ready(function($) {
 	        // window.addEventListener('touchmove', confettiCannon.handleTouchmove);
 	        window.addEventListener('resize', canvas.setCanvasSize);
 	        // custom event
-	        window.addEventListener("flip", confettiCannon.handleMouseup(event));
+	        window.addEventListener("flip", confettiCannon.handleMouseup(event, canvas.confettiX, canvas.confettiY));
 	    },
 
 	    setCanvasSize: function() {
@@ -155,12 +161,13 @@ $(document).ready(function($) {
 	        confettiCannon.canvas.style.height = window.innerHeight + 'px';
 	    },
 
-	    handleMouseup: function(event) {
+	    handleMouseup: function(event, x, y) {
 	        const length = 120;
 	        const angle = -90;
 	        const particles = 100;
 	        const velocity = length * 10;
-	        confettiCannon.addConfettiParticles(particles, angle, velocity, event.clientX-(canvas.cardHeight*0.5), event.clientY-(canvas.cardHeight));
+	        console.log(x, y);
+	        confettiCannon.addConfettiParticles(particles, angle, velocity, x, y);
 	    },
 	
 	    addConfettiParticles: function(amount, angle, velocity, x, y) {
