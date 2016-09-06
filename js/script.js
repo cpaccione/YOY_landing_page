@@ -36,7 +36,7 @@ $(document).ready(function($) {
 						x = rect.left,
 						y = rect.top;
 
-					canvas.cardCoords.push([x,y-(canvas.cardHeight*0.2)]);
+					canvas.cardCoords.push([x,y]);
 				}
 				console.log(canvas.cardCoords);
 				return canvas.cardCoords;
