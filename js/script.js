@@ -90,7 +90,7 @@ $(document).ready(function($) {
 				TweenLite.to(thisCard, 0.5, {rotationY: -180});
 				setTimeout(function(){
 					window.dispatchEvent(onFlip);
-					thisCard.find("button").addClass("slideRight-canvasHover");
+					setTimeout(function(){thisCard.find("button").addClass("slideRight-canvasHover");}, 1000);
 				}, 500);
 			}
 	}
@@ -164,9 +164,10 @@ $(document).ready(function($) {
 	    handleMouseup: function(event, x, y) {
 	        const length = 120;
 	        const angle = -90;
-	        const particles = 100;
+	        particles = 100;
 	        const velocity = length * 10;
 	        console.log(x, y);
+	        particles = window.innerWidth < 786 ? 50 : 100; 
 	        confettiCannon.addConfettiParticles(particles, angle, velocity, x, y);
 	    },
 	
