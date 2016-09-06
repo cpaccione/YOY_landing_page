@@ -164,10 +164,9 @@ $(document).ready(function($) {
 	    handleMouseup: function(event, x, y) {
 	        const length = 120;
 	        const angle = -90;
-	        particles = 100;
+	        const particles = 100;
 	        const velocity = length * 10;
 	        console.log(x, y);
-	        particles = window.innerWidth < 786 ? 50 : 100; 
 	        confettiCannon.addConfettiParticles(particles, angle, velocity, x, y);
 	    },
 	
