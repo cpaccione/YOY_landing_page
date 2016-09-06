@@ -30,7 +30,7 @@ $(document).ready(function($) {
 				// Get Flip Card Coords
 				console.log("flipCoords");
 				for (var len = canvas.cardElems.length - 1, i = 0; i < len; i++) {
-
+					console.log("flipCoord: "+i);
 					var thisCard = canvas.cardElems[i],
 						rect = thisCard.getBoundingClientRect(),
 						x = rect.left,
@@ -38,7 +38,7 @@ $(document).ready(function($) {
 
 					canvas.cardCoords.push([x,y-(canvas.cardHeight*0.2)]);
 				}
-
+				console.log(canvas.cardCoords);
 				return canvas.cardCoords;
 			},
 			flipListeners: function(array, event){
@@ -46,7 +46,7 @@ $(document).ready(function($) {
 
 				document.addEventListener("mousemove", function(e){
 					
-					for (var i = array.length - 1; i > 0; i--) {
+					for (var i = array.length-1; i >= 0; i--) {
 						console.log(i);
 						console.log(e.clientX, e.clientY);
 						console.log(array[i][0], array[i][0] + canvas.cardHeight, array[i][1], array[i][1] + canvas.cardHeight);
@@ -289,7 +289,6 @@ $(document).ready(function($) {
 
 	// canvas.insert();
 	canvas.setSize();
-	console.log(canvas.flipCoords());
 	canvas.flipListeners(canvas.flipCoords(), event);
 	confettiCannon.constructor();
 	confettiCannon.setupListeners();
