@@ -35,7 +35,7 @@ $(document).ready(function($) {
 					var thisCard = canvas.cardElems[i],
 						rect = thisCard.getBoundingClientRect(),
 						x = rect.left,
-						y = rect.top/2;
+						y = rect.top;
 
 					canvas.cardCoords.push([x,y]);
 				}
