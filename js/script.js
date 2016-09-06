@@ -1,6 +1,7 @@
 $(document).ready(function($) {
 
-	var onFlip = new Event("flip");
+	var onFlip = new Event("flip"),
+		windowOrientation = window.innerWidth >= window.innerHeight ? window.innerWidth : window.innerHeight;
 
 	////////////////////////////////////////////////////////
 	///////////////////// CANVAS OBJ ///////////////////////
@@ -34,7 +35,7 @@ $(document).ready(function($) {
 					var thisCard = canvas.cardElems[i],
 						rect = thisCard.getBoundingClientRect(),
 						x = rect.left,
-						y = rect.top;
+						y = rect.top/2;
 
 					canvas.cardCoords.push([x,y]);
 				}
@@ -287,11 +288,14 @@ $(document).ready(function($) {
 		trigger: "hover"
 	});
 
-	// canvas.insert();
-	canvas.setSize();
-	canvas.flipListeners(canvas.flipCoords(), event);
-	confettiCannon.constructor();
-	confettiCannon.setupListeners();
-	confettiCannon.render();
+	if (windowOrientation <= 767){
+		document.getElementById("confettiCanvas").remove();
+	} else {
+		canvas.setSize();
+		canvas.flipListeners(canvas.flipCoords(), event);
+		confettiCannon.constructor();
+		confettiCannon.setupListeners();
+		confettiCannon.render();
+	}
 
 });
