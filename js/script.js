@@ -29,7 +29,7 @@ $(document).ready(function($) {
 			flipCoords: function (){
 				// Get Flip Card Coords
 				console.log("flipCoords");
-				for (var len = canvas.cardElems.length - 1, i = 0; i < len; i++) {
+				for (var len = canvas.cardElems.length, i = 0; i < len; i++) {
 					console.log("flipCoord: "+i);
 					var thisCard = canvas.cardElems[i],
 						rect = thisCard.getBoundingClientRect(),
@@ -46,7 +46,7 @@ $(document).ready(function($) {
 
 				document.addEventListener("mousemove", function(e){
 					
-					for (var i = array.length-1; i >= 0; i--) {
+					for (var i = array.length - 1; i >= 0; i--) {
 						console.log(i);
 						console.log(e.clientX, e.clientY);
 						console.log(array[i][0], array[i][0] + canvas.cardHeight, array[i][1], array[i][1] + canvas.cardHeight);
