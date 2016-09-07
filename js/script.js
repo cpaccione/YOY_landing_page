@@ -235,7 +235,7 @@ $(document).ready(function($) {
 	            },
 	            d,
 	            ease: Power4.easeIn,
-	            onComplete: () => {
+	            onComplete: function(){
 	                // remove confetti sprite and id
 	                _.pull(confettiCannon.confettiSpriteIds, id);
 	                delete confettiCannon.confettiSprites[id];
