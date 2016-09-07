@@ -152,7 +152,7 @@ $(document).ready(function($) {
 	        // window.addEventListener('touchmove', confettiCannon.handleTouchmove);
 	        window.addEventListener('resize', canvas.setCanvasSize);
 	        // custom event
-	        window.addEventListener("flip", confettiCannon.handleMouseup(event, canvas.confettiX, canvas.confettiY));
+	        window.addEventListener("flip", confettiCannon.handleMouseup(window.event, canvas.confettiX, canvas.confettiY));
 	    },
 
 	    setCanvasSize: function() {
@@ -292,7 +292,7 @@ $(document).ready(function($) {
 		document.getElementById("confettiCanvas").remove();
 	} else {
 		canvas.setSize();
-		canvas.flipListeners(canvas.flipCoords(), event);
+		canvas.flipListeners(canvas.flipCoords(), window.event);
 		confettiCannon.constructor();
 		confettiCannon.setupListeners();
 		confettiCannon.render();
