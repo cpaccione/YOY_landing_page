@@ -173,7 +173,7 @@ $(document).ready(function($) {
 	
 	    addConfettiParticles: function(amount, angle, velocity, x, y) {
 	    	// console.log("addConfettiParticles");
-	        let i = 0;
+	        var i = 0;
 	        while (i < amount) {
 	            // sprite
 	            const r = _.random(4, 6) * confettiCannon.dpr;
