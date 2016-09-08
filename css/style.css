@@ -24,12 +24,12 @@ body {
 	width: 200px;
 	box-shadow: inset 0 0 0 0 #ffffff;
 	-webkit-transition: -webkit-box-shadow 300ms ease-in-out;
- 	-moz-transition: -moz-box-shadow 300ms ease-in-out;
-  	transition: box-shadow 300ms ease-in-out;
+	-webkit-transition: box-shadow 300ms ease-in-out;
+	transition: box-shadow 300ms ease-in-out;
 }
 
 .slideRight:hover,
-.slideRight-canvasHover{
+.slideRight.hover {
   box-shadow:inset 300px 0 0 0 #ffffff;
   background-color: transparent;
   color: #6cd7c8;
@@ -53,17 +53,6 @@ body {
 	color: #ffffff;
 }
 
-.card {
-	height: 344px;
-	width: 344px;
-}
-
-.card img {
-	width: 316px;
-	height: 252px;
-	margin-top: 15px;
-}
-
 /* Subhead */
 
 .subhead h2 {
@@ -75,10 +64,10 @@ body {
 .subhead p {
 	font-size: 32px;
 	color: #6cd7c8;
+	margin-bottom: 20px;
 }
 
 /* Body Content */
-
 .first-row {
 	padding-bottom: 40px;
 }
@@ -87,26 +76,25 @@ body {
 	padding-bottom: 80px;
 }
 
+.card {
+	height: 360px;
+	position: relative;
+}
+
 .front {
+	padding: 14px;
 	background-color: #ffffff;
 }
 
-.back {
-	background-color: #6cd7c8;
-	text-align: center;
-	color: #ffffff;
-}
-
-.back p {
-	font-size: 31px;
-	font-weight: bold;
+.front  img {
+	width: 100%;
 }
 
 .front h3 {
 	color: #1981c4;
 	text-transform: uppercase;
 	text-align: center;
-	margin: 0;
+	margin: 10px 0;
 	padding: 0;
 	font-weight: 700;
 }
@@ -118,6 +106,17 @@ body {
 	text-align: center;
 	margin: 0;
 	padding: 0;
+}
+
+.back {
+	background-color: #6cd7c8;
+	text-align: center;
+	color: #ffffff;
+}
+
+.back p {
+	font-size: 31px;
+	font-weight: bold;
 }
 
 /* Modal styles */
@@ -133,6 +132,7 @@ body {
 	font-weight: 400;
 	line-height: 0;
 	opacity: 1;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
 }
 
 .modal-header {
@@ -180,6 +180,8 @@ body {
 .site-link {
 	font-size: 20px;
 	font-weight: 700;
+	margin-top: 20px;
+	display: block;
 }
 
 ul.social-media {
@@ -195,19 +197,19 @@ ul.social-media li {
 	color: #b3b3b3;
 }
 
-/* Confetti */
-
-canvas {
-	position: absolute;
-	float: left;
-	z-index: 1;
-	height: 100%;
-	width: 100%;
-	/*margin-top: -100%;*/
+.profile-photos {
+	position: relative;
 }
 
-section {
-	overflow-x: hidden;
+/* Confetti */
+#confetti {
+	width: 100%;
+	height: 100%;
+	background-color: rgba( 0, 0, 0, 0 );
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	z-index: 1000;
 }
 
 /* Media Queries */
@@ -228,4 +230,15 @@ section {
 
 }
 
+@media (max-width: 800px) {
+	.col-md-4 {
+		margin-bottom: 20px;
+	}
+}
+
+@media (max-width: 425px) {
+	.card {
+		height: 380px;
+	}
+}
 

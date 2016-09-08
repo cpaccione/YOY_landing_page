@@ -1,301 +1,310 @@
-$(document).ready(function($) {
+/* Animation settings. */
+var DECAY = 3; // Confetti decay in seconds
+var SPREAD = 100; // Degrees to spread from the angle of the cannon
+var GRAVITY = 1200;
 
-	var onFlip = new Event("flip"),
-		windowOrientation = window.innerWidth >= window.innerHeight ? window.innerWidth : window.innerHeight;
+function confettiEffect() {
+    /* Canvas. */
+    this.canvas = $( "#confetti" );
+    this.canvasWidth = this.canvas.outerWidth();
+    this.canvasHeight = this.canvas.outerHeight();
 
-	////////////////////////////////////////////////////////
-	///////////////////// CANVAS OBJ ///////////////////////
-	////////////////////////////////////////////////////////
+    /* Canvas context. */
+    this.dpr = window.devicePixelRatio || 1;
+    this.ctx = this.canvas.get( 0 ).getContext( "2d" );
 
-	var canvas = {
-			canvas: document.getElementById("confettiCanvas"),
-			cardElems: document.querySelectorAll(".card"),
-			cardHeight: $(".card").height(),
-			cardHover: false,
-			cardUrl: undefined,
-			cardCoords: [],
-			cardIndex: undefined,
-			confetti: true,
-			confettiX: undefined,
-			confettiY: undefined,
-			setSize: function(){
-				console.log("setSize");
-				canvas.canvas.style.height = canvas.canvas.parentElement.style.clientHeight;
-				canvas.canvas.style.width = canvas.canvas.parentElement.style.clientWidth;
-			},
-			insert: function(){ 
-				console.log("insert");
-				$("section").find(".profile-photos").append('<canvas id="confettiCanvas"></canvas>') 
-			},
-			flipCoords: function (){
-				// Get Flip Card Coords
-				console.log("flipCoords");
-				for (var len = canvas.cardElems.length, i = 0; i < len; i++) {
-					console.log("flipCoord: "+i);
-					var thisCard = canvas.cardElems[i],
-						rect = thisCard.getBoundingClientRect(),
-						x = rect.left,
-						y = rect.top;
+    this.ctx.scale( this.dpr, this.dpr );
 
-					canvas.cardCoords.push([x,y]);
-				}
-				console.log(canvas.cardCoords);
-				return canvas.cardCoords;
-			},
-			flipListeners: function(array, event){
-				console.log("flipListeners");
+    // Sprite data structure.
+    this.confettiSpriteIds = [];
+    this.confettiSprites = {};
 
-				document.addEventListener("mousemove", function(e){
-					
-					for (var i = array.length - 1; i >= 0; i--) {
-						console.log(i);
-						console.log(e.clientX, e.clientY);
-						console.log(array[i][0], array[i][0] + canvas.cardHeight, array[i][1], array[i][1] + canvas.cardHeight);
-						console.log(e.clientX >= array[i][0], e.clientX <= array[i][0] + canvas.cardHeight, e.clientY >= array[i][1], e.clientY <= array[i][1] + canvas.cardHeight);
-						if ( e.clientX >= array[i][0] && e.clientX <= (array[i][0] + canvas.cardHeight) && e.clientY >= array[i][1] && e.clientY <= (array[i][1] + canvas.cardHeight) ){
-							canvas.flipCard(i);
-							canvas.cardHover = true;
-							document.body.style.cursor = "pointer";
-							canvas.cardIndex = i;
-							// console.log(canvas.cardCoords[i][0],canvas.cardCoords[i][1]);
-							canvas.confettiX =  canvas.cardCoords[i][0]-(canvas.cardHeight*0.5),
-							canvas.confettiY =  canvas.cardCoords[i][1];
-							window.dispatchEvent(onFlip);
-							if (canvas.confetti) {
-								confettiCannon.handleMouseup(e, canvas.confettiX, canvas.confettiY);
-								canvas.confetti = false;
-							}
-						} 
-						else {
-							var thisCard = $(".card").eq(i); 
-							if (thisCard.hasClass("m-flipped")) {
-								canvas.cardHover = false;
-								document.body.style.cursor = "default";
-								thisCard.removeClass("m-flipped").addClass("m-not-flipped");
-								TweenLite.to(thisCard, 0.5, {rotationY: 0});
-								thisCard.find("button").removeClass("slideRight-canvasHover");
-								canvas.confetti = true;
-							}
-						}
-					}
-				});
-				
-			},
-			buttonListeners: function(){
-				console.log("buttonListeners");
+    /* Effect settings. */
+    this.settings = {
+        length: 120,
+        angle: -90,
+        particles: 100,
+        velocity: 120 * 10
+    }
 
-			},
-			flipCard: function(i){
-				var thisCard = $(".card").eq(i); 
-				thisCard.removeClass("m-not-flipped").addClass("m-flipped");
-				TweenLite.to(thisCard, 0.5, {rotationY: -180});
-				setTimeout(function(){
-					window.dispatchEvent(onFlip);
-					setTimeout(function(){thisCard.find("button").addClass("slideRight-canvasHover");}, 1000);
-				}, 500);
-			}
-	}
+    /* Cards and buttons. */
+    this.cards = [];
+    this.buttons = [];
 
+    /* 
+     * We toggle this on temporarily when we're flipping a card,
+     * It is toggled off later to allow for button clicking.
+     * This is to solve a problem where if we click on mobile right on
+     * top of where the button is, the modal is opened as well.
+     */
 
-	////////////////////////////////////////////////////////
-	///////////////////// FUNCTIONS ////////////////////////
-	////////////////////////////////////////////////////////
+    this.flipping = false;
 
-	// utilities
-	function getLength(x0, y0, x1, y1) {
-	    // returns the length of a line segment
-	    const x = x1 - x0;
-	    const y = y1 - y0;
-	    return Math.sqrt(x * x + y * y);
-	}
+    this.cardsContainer = $( ".profile-photos" );
 
-	function getDegAngle(x0, y0, x1, y1) {
-	    const y = y1 - y0;
-	    const x = x1 - x0;
-	    return Math.atan2(y, x) * (180 / Math.PI);
-	}
+    this.init();
 
-	// some constants
-	const DECAY = 3;        // confetti decay in seconds
-	const SPREAD = 100;      // degrees to spread from the angle of the cannon
-	const GRAVITY = 1200;
+    $( document ).mousemove( _.bind( this.hoverEventHandler, this ) );
+    
+    /** 
+     * If the viewport resolution is changed, everything changes.
+     * So we need to recalculate card bounding boxes.
+     */
+    $( window ).resize( _.bind( this.init, this ) );
 
-	var confettiCannon = {
-	    constructor: function() {
-	        // setup a canvas
-	        confettiCannon.canvas = document.getElementById('confettiCanvas');
-	        confettiCannon.dpr = window.devicePixelRatio || 1;
-	        confettiCannon.ctx = confettiCannon.canvas.getContext('2d');
-	        confettiCannon.ctx.scale(confettiCannon.dpr, confettiCannon.dpr);
+    this.canvas.on( "click", _.bind( this.clickEventHandler, this ) );
 
-	        // add confetti here
-	        confettiCannon.confettiSpriteIds = [];
-	        confettiCannon.confettiSprites = {};
-	        
-	        // bind methods
-	        confettiCannon.render = confettiCannon.render.bind(confettiCannon);
-	        confettiCannon.handleMouseup = confettiCannon.handleMouseup.bind(confettiCannon);
-	        confettiCannon.setCanvasSize = confettiCannon.setCanvasSize.bind(confettiCannon);
-	        
-	        confettiCannon.setupListeners();
-	        confettiCannon.setCanvasSize();
-	    },
-	    
-	    setupListeners: function() {
-	        // Use TweenLite tick event for the render loop
-	        TweenLite.ticker.addEventListener('tick', confettiCannon.render);
-	        
-	        // bind events
-	        window.addEventListener('mousemove', confettiCannon.handleMousemove);
-	        // window.addEventListener('touchstart', confettiCannon.handleTouchstart);
-	        // window.addEventListener('touchend', confettiCannon.handleMouseup);
-	        // window.addEventListener('touchmove', confettiCannon.handleTouchmove);
-	        window.addEventListener('resize', canvas.setCanvasSize);
-	        // custom event
-	        window.addEventListener("flip", confettiCannon.handleMouseup(window.event, canvas.confettiX, canvas.confettiY));
-	    },
+    this.mousePosition = { x: 0, y: 0 };
 
-	    setCanvasSize: function() {
-	        confettiCannon.canvas.width = window.innerWidth * confettiCannon.dpr;
-	        confettiCannon.canvas.height = window.innerHeight * confettiCannon.dpr;
-	        confettiCannon.canvas.style.width = window.innerWidth + 'px';
-	        confettiCannon.canvas.style.height = window.innerHeight + 'px';
-	    },
+    /* We setup a watcher to unflip the cards back. */
+    setInterval( _.bind( this.unflipCards, this ), 500 );
 
-	    handleMouseup: function(event, x, y) {
-	        const length = 120;
-	        const angle = -90;
-	        const particles = 100;
-	        const velocity = length * 10;
-	        console.log(x, y);
-	        confettiCannon.addConfettiParticles(particles, angle, velocity, x, y);
-	    },
-	
-	    addConfettiParticles: function(amount, angle, velocity, x, y) {
-	    	// console.log("addConfettiParticles");
-	        var i = 0;
-	        while (i < amount) {
-	            // sprite
-	            const r = _.random(4, 6) * confettiCannon.dpr;
-	            const d = _.random(15, 25) * confettiCannon.dpr;
-	            
-	            const cr = _.random(30, 255);
-	            const cg = _.random(30, 230);
-	            const cb = _.random(30, 230);
-	            const color = `rgb(${cr}, ${cg}, ${cb})`;
-	            
-	            const tilt = _.random(10, -10);
-	            const tiltAngleIncremental = _.random(0.07, 0.05);
-	            const tiltAngle = 0;
+    TweenLite.ticker.addEventListener( "tick", _.bind( this.render, this ) );
 
-	            const id = _.uniqueId();
-	            const sprite = {
-	                [id]: {
-	                    angle,
-	                    velocity,
-	                    x,
-	                    y,
-	                    r,
-	                    d,
-	                    color,
-	                    tilt,
-	                    tiltAngleIncremental,
-	                    tiltAngle,
-	                },
-	            };
+    this.render();
+}
 
-	            Object.assign(confettiCannon.confettiSprites, sprite);
-	            confettiCannon.confettiSpriteIds.push(id);
-	            confettiCannon.tweenConfettiParticle(id);
-	            i++;
-	        }
-	    },
+confettiEffect.prototype.init = function() {
+    this.canvasWidth = this.canvas.outerWidth();
+    this.canvasHeight = this.canvas.outerHeight();
 
-	    tweenConfettiParticle: function(id) {
-	    	// console.log("tweenConfettiParticle");
-	        const minAngle = confettiCannon.confettiSprites[id].angle - SPREAD / 2;
-	        const maxAngle = confettiCannon.confettiSprites[id].angle + SPREAD / 2;
-	        
-	        const minVelocity = confettiCannon.confettiSprites[id].velocity / 4;
-	        const maxVelocity = confettiCannon.confettiSprites[id].velocity;
+    this.canvas.attr( "width", this.canvasWidth );
+    this.canvas.attr( "height", this.canvasHeight );
 
-	        // Physics Props
-	        const velocity = _.random(minVelocity, maxVelocity);
-	        const angle = _.random(minAngle, maxAngle);
-	        const gravity = GRAVITY;
-	        const friction = _.random(0.1, 0.25);
-	        const d = 0;
+    var cards = $( ".card", this.cardsContainer ),
+        i = 0, L = cards.length, card = null, offset = null,
+        button = null, buttonOffset = null;
 
-	        TweenLite.to(confettiCannon.confettiSprites[id], DECAY, {
-	            physics2D: {
-	                velocity,
-	                angle,
-	                gravity,
-	                friction,
-	            },
-	            d,
-	            ease: Power4.easeIn,
-	            onComplete: function(){
-	                // remove confetti sprite and id
-	                _.pull(confettiCannon.confettiSpriteIds, id);
-	                delete confettiCannon.confettiSprites[id];
-	            },
-	        });
-	    },
+    this.cards = [];
+    this.buttons = [];
 
-	    updateConfettiParticle: function(id) {
-	    	// console.log("updateConfettiParticle");
-	        const sprite = confettiCannon.confettiSprites[id];
-	        
-	        const tiltAngle = 0.0005 * sprite.d;
-	        
-	        sprite.angle += 0.01;
-	        sprite.tiltAngle += tiltAngle;
-	        sprite.tiltAngle += sprite.tiltAngleIncremental;
-	        sprite.tilt = (Math.sin(sprite.tiltAngle - (sprite.r / 2))) * sprite.r * 2;
-	        sprite.y += Math.sin(sprite.angle + sprite.r / 2) * 2;
-	        sprite.x += Math.cos(sprite.angle) / 2;
-	    },
+    for( ; i < L; ++i ) {
+        card = $( cards[ i ] );
+        offset = card.offset();
 
-	    drawConfetti: function() {
-	    	// console.log("drawConfetti");
-	        confettiCannon.confettiSpriteIds.map(id => {
-	            const sprite = confettiCannon.confettiSprites[id];
-	            
-	            confettiCannon.ctx.beginPath();
-	            confettiCannon.ctx.lineWidth = sprite.d / 2;
-	            confettiCannon.ctx.strokeStyle = sprite.color;
-	            confettiCannon.ctx.moveTo(sprite.x + sprite.tilt + sprite.r, sprite.y);
-	            confettiCannon.ctx.lineTo(sprite.x + sprite.tilt, sprite.y + sprite.tilt + sprite.r);
-	            confettiCannon.ctx.stroke();
+        /* Cache buttons for click processing. */
+        button = $( ".btn-info", card );
+        button = {
+            $el: button,
+        };
 
-	            confettiCannon.updateConfettiParticle(id);
-	        });
-	    },
-	 
-	    render: function() {
-	        confettiCannon.ctx.clearRect(0, 0, confettiCannon.canvas.width, confettiCannon.canvas.height);
-	        confettiCannon.drawConfetti();
-	    }
-	}
+        this.buttons.push( button );
 
+        button.card = this.cards.push({
+            $el: card,
+            x: offset.left,
+            y: offset.top,
+            deltaX: offset.left + card.outerWidth(),
+            deltaY: offset.top + card.outerHeight(),
+            flipped: false,
+            button: button
+        });
+    }
+};
 
-	////////////////////////////////////////////////////////
-	//////////////////// RUNTIME EXEC //////////////////////
-	////////////////////////////////////////////////////////
+confettiEffect.prototype.unflipCards = function() {
+    // console.log( "Refreshing cards..." );
+    var cards = this.cards,
+        i = 0, L = cards.length, card = null
+        mouse = this.mousePosition;
 
-	$(".card").flip({
-		trigger: "hover"
-	});
+    for( ; i < L; ++i ) {
+        card = cards[ i ];
 
-	if (windowOrientation <= 767){
-		document.getElementById("confettiCanvas").remove();
-	} else {
-		canvas.setSize();
-		canvas.flipListeners(canvas.flipCoords(), window.event);
-		confettiCannon.constructor();
-		confettiCannon.setupListeners();
-		confettiCannon.render();
-	}
+        if( ( mouse.x < card.x || mouse.x > card.deltaX || mouse.y < card.y || mouse.y > card.deltaY ) && card.flipped ) {
+            card.$el.trigger( "click" );
+            card.flipped = false;
+        }
+    }
+}
 
+confettiEffect.prototype.hoverEventHandler = function( event ) {
+    var mouseX = event.pageX, mouseY = event.pageY,
+        cards = this.cards,
+        i = 0, L = cards.length, card = null,
+        button = null, buttonOffset = null, self = this;
+
+    this.mousePosition = { x: mouseX, y: mouseY };
+
+    for( ; i < L; ++i ) {
+        card = cards[ i ];
+        button = card.button;
+
+        if( mouseX > card.x && mouseX < card.deltaX && mouseY > card.y && mouseY < card.deltaY && !card.flipped ) {
+            // console.log( "Mouse X: " + mouseX + "\nCard X: " + card.x + "\n Card AfterX: " + 
+            // ( card.x + card.width ) + "\nMouse Y: " + mouseY + "\nCard Y: " + card.y + "\n Card AfterY: " + ( card.y + card.height ) )
+            card.$el.trigger( "click" );
+            card.flipped = true;
+
+            this.flipping = true;
+            /* Fire confetti in the center of the card. */
+            this.fire( ( card.x + card.deltaX ) / 2, ( card.y + card.deltaY ) / 2 );
+
+            setTimeout( function() {
+                self.flipping = false;
+            }, 1000 )
+        }
+
+        /* Recalculating button bounding box. */
+        buttonOffset = button.$el.offset();
+
+        button.x      = buttonOffset.left;
+        button.y      = buttonOffset.top;
+        button.deltaX =  buttonOffset.left + button.$el.outerWidth();
+        button.deltaY = buttonOffset.top + button.$el.outerHeight();
+
+        if( mouseX > button.x && mouseX < button.deltaX && mouseY > button.y && mouseY < button.deltaY ) {
+            button.$el.addClass( "hover" );
+        } else if( button.$el.hasClass( "hover" ) ) {
+            button.$el.removeClass( "hover" );
+        }
+    }
+}
+
+confettiEffect.prototype.clickEventHandler = function( event ) {
+    var mouseX = event.pageX, mouseY = event.pageY,
+        buttons = this.buttons,
+        i = 0, L = buttons.length, button = null;
+
+    if( this.flipping )
+        return;
+
+    for( ; i < L; ++i ) {
+        button = buttons[ i ];
+
+        if( mouseX > button.x && mouseX < button.deltaX && mouseY > button.y && mouseY < button.deltaY )
+            button.$el.trigger( "click" );
+    }
+}
+
+confettiEffect.prototype.fire = function( x, y ) {
+
+    /* Calculating coordinates within the canvas. */
+    var canvasOffset = this.canvas.offset();
+    x = x - canvasOffset.left;
+    y = y - canvasOffset.top;
+
+    // console.log( "Firing confetti... at: ( " + x + ", " + y + " )" );
+
+    var settings = this.settings,
+        amount = settings.particles, angle = settings.angle,
+        velocity = settings.velocity, i = 0;
+
+    while ( i < amount ) {
+        // sprite
+        var r = _.random( 4, 6 ) * this.dpr;
+        var d = _.random( 15, 25 ) * this.dpr;
+        
+        var cr = _.random( 30, 255 );
+        var cg = _.random( 30, 230 );
+        var cb = _.random( 30, 230 );
+        var color = "rgb(" + cr + "," + cg + "," + cb + ")";
+        
+        var tilt = _.random( 10, -10 );
+        var tiltAngleIncremental = _.random( 0.07, 0.05 );
+        var tiltAngle = 0;
+
+        var id = _.uniqueId();
+
+        var sprite = {
+            angle: angle,
+            velocity: velocity,
+            x: x,
+            y: y,
+            r: r,
+            d: d,
+            color: color,
+            tilt: tilt,
+            tiltAngleIncremental: tiltAngleIncremental,
+            tiltAngle: tiltAngle,
+        };
+
+        this.confettiSprites[ id ] = sprite;
+        this.confettiSpriteIds.push( id );
+        
+        this.tweenParticle( id );
+
+        i++;
+    }
+};
+
+confettiEffect.prototype.tweenParticle = function( id ) {
+    var sprite = this.confettiSprites[ id ];
+
+    // console.log("tweenConfettiParticle");
+    var minAngle = sprite.angle - SPREAD / 2;
+    var maxAngle = sprite.angle + SPREAD / 2;
+    
+    var minVelocity = sprite.velocity / 4;
+    var maxVelocity = sprite.velocity;
+
+    // Physics Props
+    var velocity = _.random( minVelocity, maxVelocity );
+    var angle = _.random( minAngle, maxAngle );
+    var gravity = GRAVITY;
+    var friction = _.random( 0.1, 0.25 );
+    var d = 0;
+
+    var self = this;
+
+    TweenLite.to( sprite, DECAY, {
+        physics2D: {
+            velocity: velocity,
+            angle: angle,
+            gravity: gravity,
+            friction: friction,
+        },
+        d: d,
+        ease: Power4.easeIn,
+        onComplete: function(){
+            // remove confetti sprite and id
+            _.pull( self.confettiSpriteIds, id );
+            delete self.confettiSprites[ id ];
+        },
+    });
+},
+
+confettiEffect.prototype.updateConfettiParticle = function( id ) {
+    var sprite = this.confettiSprites[ id ];
+    
+    var tiltAngle = 0.0005 * sprite.d;
+    
+    sprite.angle += 0.01;
+    sprite.tiltAngle += tiltAngle;
+    sprite.tiltAngle += sprite.tiltAngleIncremental;
+    sprite.tilt = ( Math.sin( sprite.tiltAngle - (sprite.r / 2 ) ) ) * sprite.r * 2;
+    sprite.y += Math.sin( sprite.angle + sprite.r / 2 ) * 2;
+    sprite.x += Math.cos( sprite.angle ) / 2;
+};
+
+confettiEffect.prototype.drawConfetti = function() {
+    var self = this,
+        ctx = this.ctx;
+
+    this.confettiSpriteIds.map( function( id ) {
+        var sprite = self.confettiSprites[ id ];
+
+        ctx.beginPath();
+        ctx.lineWidth = sprite.d / 2;
+        ctx.strokeStyle = sprite.color;
+        ctx.moveTo( sprite.x + sprite.tilt + sprite.r, sprite.y );
+        ctx.lineTo( sprite.x + sprite.tilt, sprite.y + sprite.tilt + sprite.r );
+        ctx.stroke();
+
+        self.updateConfettiParticle( id );
+    });
+};
+
+confettiEffect.prototype.render = function() {
+    this.ctx.clearRect( 0, 0, this.canvasWidth, this.canvasHeight );
+    this.drawConfetti();
+};
+
+$( document ).ready( function( $ ) {
+    /* Activate card flipping. */
+    $( ".card" ).flip({
+        trigger: "click",
+    });
+
+    new confettiEffect();
 });
